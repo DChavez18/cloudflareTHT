@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/go-redis/redis/v8"
@@ -11,7 +11,7 @@ import (
 
 type WeatherData struct {
 	Temperature float64 `json:"temperature"`
-	Humidity    float64 `json:"humidity"`
+	Humidity    float64 `json:"relativehumidity"`
 	Pressure    float64 `json:"pressure"`
 }
 
@@ -19,6 +19,13 @@ type WeatherController struct {
 	WeatherData WeatherData
 }
 
+type Period struct {
+	Temperature float64 `json:"temperature"`
+	Properties struct{
+		RelativeHumidity float64 `json:"relativeHumidity"`
+	} `json:"properties"`
+	Pressure    float64 `json:"pressure"`
+}
 
 func (wc *WeatherController) Update(temperature, humidity, pressure float64) {
 	wc.WeatherData.Temperature = temperature
@@ -29,9 +36,9 @@ func (wc *WeatherController) Update(temperature, humidity, pressure float64) {
 func main() {
 
 	rdb := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
+		Addr:     "localhost:6379",
 		Password: "",
-		DB: 0,
+		DB:       0,
 	})
 	defer rdb.Close()
 
@@ -50,7 +57,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("Weather data has been stored in Redis.", fmt.Sprintf("temperature=%.2f humidity=%.2f pressure=%.2f", weatherController.weatherData.temperature, weatherController.weatherData.humidity, weatherController.weatherData.pressure))
+	fmt.Println("Weather data has been stored in Redis.", fmt.Sprintf("temperature=%.2f humidity=%.2f pressure=%.2f", weatherController.WeatherData.Temperature, weatherController.WeatherData.Humidity, weatherController.WeatherData.Pressure))
 }
 
 func fetchWeatherData() (WeatherData, error) {
@@ -67,16 +74,7 @@ func fetchWeatherData() (WeatherData, error) {
 
 	var weatherResponse struct {
 		Properties struct {
-			Periods []struct {
-				Temperature      float64 `json:"temperature"`
-				Humidity         float64 `json:"relativeHumidity"`
-				WindSpeed        float64 `json:"windSpeed"`
-				WindGust         float64 `json:"windGust"`
-				WindDirection    string  `json:"windDirection"`
-				Icon             string  `json:"icon"`
-				ShortForecast    string  `json:"shortForecast"`
-				DetailedForecast string  `json:"detailedForecast"`
-			} `json:"periods"`
+			Periods []Period `json:"periods"`
 		} `json:"properties"`
 	}
 
@@ -92,7 +90,7 @@ func fetchWeatherData() (WeatherData, error) {
 	currentPeriod := weatherResponse.Properties.Periods[0]
 	return WeatherData{
 		Temperature: currentPeriod.Temperature,
-		Humidity:    currentPeriod.Humidity,
+		Humidity:    currentPeriod.Properties.RelativeHumidity,
 		Pressure:    0,
 	}, nil
 }
