@@ -56,13 +56,18 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	
+	val, err := rdb.Get(ctx, "weather").Result()
+	if err != nil {
+		panic(err)
+	}
 
-	fmt.Println("Weather data has been stored in Redis.", fmt.Sprintf("temperature=%.2f humidity=%.2f pressure=%.2f", weatherController.WeatherData.Temperature, weatherController.WeatherData.Humidity, weatherController.WeatherData.Pressure))
+	fmt.Println("Weather data retrieved from Redis cache:", val)
 }
 
 func fetchWeatherData() (WeatherData, error) {
 
-	resp, err := http.Get("http://api.weather.gov/gridpoints/TOP/31,80/forecast/hourly")
+	resp, err := http.Get("http://api.weather.gov/gridpoints/EWX/31,80/forecast/hourly")
 	if err != nil {
 		return WeatherData{}, fmt.Errorf("failed to fetch weather data: %v", err)
 	}
