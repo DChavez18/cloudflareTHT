@@ -21,7 +21,7 @@ This Go program retrieves weather data from the National Weather Service API, st
 ### Usage
 
 - The Go program will fetch weather data from the National Weather Service API for the Austin, Texas area and store it in the Redis cache.
-- After storing the data, it retrieves the data from the Redis cache and displays it in the terminal.
+- After storing the data, it retrieves the data from the Redis cache and starts an HTTP server locally on localhost:8080 to display the weather data retrieved from the Redis cache in a web browser.
 
 ### Additional Notes
 
