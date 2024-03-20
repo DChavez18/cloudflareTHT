@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"context"
+
+	"github.com/go-redis/redis/v8"
 )
 
 type WeatherData struct {
@@ -22,6 +25,16 @@ func (wc *WeatherController) update(temperature float64, humidity float64, press
 }
 
 func main() {
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+		Password: "",
+		DB: 0,
+	})
+	defer rdb.Close()
+
+	ctx := context.Background()
+
 	weatherController := WeatherController{}
 	weatherController.update(20, 60, 1013)
 	fmt.Println(weatherController.weatherData)
